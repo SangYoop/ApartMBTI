@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 const SITE_URL = "https://apart-mbti.vercel.app"; // TODO: 실제 Vercel URL로 교체
@@ -54,6 +55,7 @@ export default function RootLayout({
         className="min-h-screen bg-slate-50 text-slate-900 antialiased"
       >
         {children}
+        <Analytics />
       </body>
     </html>
   );
