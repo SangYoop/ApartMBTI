@@ -119,12 +119,12 @@ const cardVariants = {
   center: {
     opacity: 1,
     x: 0,
-    transition: { duration: 0.38, ease: [0.25, 0.46, 0.45, 0.94] },
+    transition: { duration: 0.38, ease: [0.25, 0.46, 0.45, 0.94] as const },
   },
   exit: {
     opacity: 0,
     x: -60,
-    transition: { duration: 0.28, ease: [0.55, 0, 1, 0.45] },
+    transition: { duration: 0.28, ease: [0.55, 0, 1, 0.45] as const },
   },
 };
 
