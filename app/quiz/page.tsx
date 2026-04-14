@@ -20,7 +20,7 @@ const QUESTIONS: Question[] = [
   {
     id: 1,
     axis: "US",
-    text: "매일 아침 출근길, 당신의 인내심을 시험할 선택은?",
+    text: "매일 아침 출근길, 그래도 굳이 선택한다면?",
     options: [
       { label: "환승 2번은 기본! 40분간 꽉 낀 채 영혼 탈출하는 인서울 지옥철", value: "U" },
       { label: "환승 없이 1시간! 대신 무조건 앉아서 유튜브 정주행하는 광역버스", value: "S" },

@@ -102,7 +102,7 @@ export default function HomePage() {
           <div className="rounded-[2rem] overflow-hidden shadow-2xl border border-slate-100/80 ring-1 ring-slate-200/60">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/thumbnail.png"
+              src="/thumbnail.webp"
               alt="첫 집 마련 MBTI 결과 미리보기"
               className="w-full h-auto block"
             />

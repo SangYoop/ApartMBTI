@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 
 const inputPath = 'public/thumbnail.png';
-const outputPath = 'public/thumbnail.webp';
+const outputPath = 'public/thumbnail.jpg';
 
 async function optimizeImage() {
   if (!fs.existsSync(inputPath)) {
@@ -15,7 +15,7 @@ async function optimizeImage() {
 
   try {
     await sharp(inputPath)
-      .webp({ quality: 80 }) // 80 is a good balance for thumbnails
+      .jpeg({ quality: 85, mozjpeg: true })
       .toFile(outputPath);
 
     const inputStats = fs.statSync(inputPath);
