@@ -91,6 +91,24 @@ export default function HomePage() {
           </motion.button>
         </motion.div>
 
+        {/* Thumbnail preview */}
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          custom={0.5}
+          className="w-full max-w-2xl mx-auto"
+        >
+          <div className="rounded-[2rem] overflow-hidden shadow-2xl border border-slate-100/80 ring-1 ring-slate-200/60">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/thumbnail.png"
+              alt="첫 집 마련 MBTI 결과 미리보기"
+              className="w-full h-auto block"
+            />
+          </div>
+        </motion.div>
+
       </div>
 
       {/* Footer hint */}
@@ -98,8 +116,8 @@ export default function HomePage() {
         variants={fadeUp}
         initial="hidden"
         animate="visible"
-        custom={0.6}
-        className="relative z-10 mt-16 text-sm text-slate-400 font-medium"
+        custom={0.65}
+        className="relative z-10 mt-12 text-sm text-slate-400 font-medium"
       >
         무료 · 회원가입 없이 바로 시작
       </motion.p>
