@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     siteName: "첫 집 마련 가이드",
     images: [
       {
-        url: "/thumbnail.png",
+        url: "/thumbnail.webp",
         width: 1200,
         height: 630,
         alt: "첫 집 마련 MBTI — 부동산 성향 테스트 & 대출 계산기",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     title: "내집마련 가이드: 부동산 MBTI & 10.15 대출 계산기",
     description:
       "나의 부동산 성향을 분석하고, 최신 10.15 대책이 반영된 내 집 마련 실전 예산을 확인해 보세요.",
-    images: ["/thumbnail.png"],
+    images: ["/thumbnail.webp"],
   },
 };
 
