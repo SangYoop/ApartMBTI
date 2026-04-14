@@ -4,7 +4,7 @@ import { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  RotateCcw, Share2, MapPin, Hash, Quote,
+  RotateCcw, Link, Gift, MapPin, Hash, Quote,
   Lightbulb, Sparkles, X, Calculator, ChevronRight, Camera,
 } from "lucide-react";
 
@@ -632,6 +632,7 @@ function ResultInner() {
   const data = MBTI_DATA[typeCode] ?? FALLBACK;
 
   const [calcOpen, setCalcOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const checklist = CHECKLIST_DATA[typeCode] ?? [];
   const [checked, setChecked] = useState<boolean[]>(() => checklist.map(() => false));
 
@@ -639,14 +640,19 @@ function ResultInner() {
     setChecked((prev) => prev.map((v, idx) => (idx === i ? !v : v)));
   }
 
-  function handleShare() {
-    const url = window.location.href;
-    if (navigator.share) {
-      navigator.share({ title: `나는 ${data.title}!`, url });
-    } else {
-      navigator.clipboard.writeText(url);
-      alert("링크가 복사되었습니다!");
-    }
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  }
+
+  function handleShareResult() {
+    navigator.clipboard.writeText(window.location.href);
+    showToast("링크가 복사되었습니다. 친구에게 내 성향을 알려주세요!");
+  }
+
+  function handleShareRecommend() {
+    navigator.clipboard.writeText(window.location.origin);
+    showToast("링크가 클립보드에 복사되었습니다. 친구에게 링크를 공유해보세요!");
   }
 
   return (
@@ -861,15 +867,29 @@ function ResultInner() {
                     <RotateCcw size={16} strokeWidth={2.5} />
                     테스트 다시하기
                   </motion.button>
+                </div>
+
+                {/* Share buttons */}
+                <div className="flex flex-col sm:flex-row gap-3">
                   <motion.button
-                    onClick={handleShare}
+                    onClick={handleShareResult}
+                    whileHover={{ y: -2, boxShadow: "0 8px 24px -6px rgba(79,70,229,0.35)" }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                    className="inline-flex items-center gap-2.5 bg-indigo-600 text-white rounded-full px-8 py-4 text-base font-semibold cursor-pointer hover:bg-indigo-700 transition-colors flex-1 justify-center"
+                  >
+                    <Link size={16} strokeWidth={2.5} />
+                    내 결과 공유하기
+                  </motion.button>
+                  <motion.button
+                    onClick={handleShareRecommend}
                     whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.97 }}
                     transition={{ type: "spring", stiffness: 400, damping: 22 }}
-                    className="inline-flex items-center gap-2.5 border-2 border-slate-200 text-slate-700 rounded-full px-8 py-4 text-base font-semibold cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 transition-colors w-full sm:w-auto justify-center"
+                    className="inline-flex items-center gap-2.5 border-2 border-slate-200 text-slate-700 rounded-full px-8 py-4 text-base font-semibold cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 transition-colors flex-1 justify-center"
                   >
-                    <Share2 size={16} strokeWidth={2.5} />
-                    결과 공유하기
+                    <Gift size={16} strokeWidth={2.5} />
+                    친구에게 추천
                   </motion.button>
                 </div>
               </div>
@@ -879,6 +899,22 @@ function ResultInner() {
       </main>
 
       <CalculatorSheet open={calcOpen} onClose={() => setCalcOpen(false)} />
+
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            key="toast"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 16 }}
+            transition={{ duration: 0.25 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-sm font-semibold px-6 py-3.5 rounded-2xl shadow-xl whitespace-nowrap"
+          >
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
