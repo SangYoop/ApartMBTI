@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
-import { supabase, PollOptionWithApt } from "@/lib/supabase";
+import { getSupabase, PollOptionWithApt } from "@/lib/supabase";
 import ApartmentSummaryCard from "./ApartmentSummaryCard";
 
 interface Props {
@@ -34,7 +34,7 @@ export default function PollVotingBoard({ pollId, initialOptions }: Props) {
     setVoted(optionId);
     localStorage.setItem(`voted_${pollId}`, optionId);
 
-    const { error } = await supabase
+    const { error } = await getSupabase()
       .from("poll_options")
       .update({ vote_count: target.vote_count + 1 })
       .eq("id", optionId);

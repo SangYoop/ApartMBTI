@@ -3,9 +3,10 @@
 import { use, useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Send, MapPin, Wallet } from "lucide-react";
 import {
-  supabase,
+  getSupabase,
+  formatBudget,
   Poll,
   PollOption,
   PollOptionWithApt,
@@ -35,9 +36,9 @@ export default function PollDetailPage({
     async function fetchAll() {
       const [{ data: pollData }, { data: optionsData }, { data: commentsData }] =
         await Promise.all([
-          supabase.from("polls").select("*").eq("id", id).single(),
-          supabase.from("poll_options").select("*").eq("poll_id", id),
-          supabase
+          getSupabase().from("polls").select("*").eq("id", id).single(),
+          getSupabase().from("poll_options").select("*").eq("poll_id", id),
+          getSupabase()
             .from("poll_comments")
             .select("*")
             .eq("poll_id", id)
@@ -50,7 +51,7 @@ export default function PollDetailPage({
       }
 
       const aptIds = (optionsData as PollOption[]).map((o) => o.apartment_id);
-      const { data: apartments } = await supabase
+      const { data: apartments } = await getSupabase()
         .from("apartData")
         .select(APT_COLS)
         .in("danjiCode", aptIds);
@@ -78,7 +79,7 @@ export default function PollDetailPage({
     if (!content.trim() || !authorName.trim()) return;
     setSubmitting(true);
 
-    const { data: newComment } = await supabase
+    const { data: newComment } = await getSupabase()
       .from("poll_comments")
       .insert({
         poll_id: id,
@@ -120,17 +121,29 @@ export default function PollDetailPage({
     <main className="min-h-screen bg-slate-50 pb-24">
       {/* 헤더 */}
       <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100">
-        <div className="max-w-xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Link
-            href="/polls"
-            className="p-2 rounded-full hover:bg-slate-100 transition-colors shrink-0"
-          >
+        <div className="max-w-xl mx-auto px-4 pt-4 flex items-center gap-3">
+          <Link href="/polls" className="p-2 rounded-full hover:bg-slate-100 transition-colors shrink-0">
             <ArrowLeft size={18} className="text-slate-500" />
           </Link>
-          <h1 className="font-extrabold text-slate-900 text-base flex-1 truncate">
-            {poll.title}
-          </h1>
+          <h1 className="font-extrabold text-slate-900 text-base flex-1 truncate">{poll.title}</h1>
         </div>
+        {(poll.region || poll.budget) && (
+          <div className="max-w-xl mx-auto px-4 pb-3 pt-2 flex flex-wrap gap-1.5">
+            {poll.region && (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full">
+                <MapPin size={10} />
+                {poll.region}
+              </span>
+            )}
+            {poll.budget && (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">
+                <Wallet size={10} />
+                {formatBudget(poll.budget)}
+              </span>
+            )}
+          </div>
+        )}
+        {!poll.region && !poll.budget && <div className="pb-1" />}
       </header>
 
       <div className="max-w-xl mx-auto px-4 py-6 space-y-10">

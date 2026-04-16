@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Plus, Home } from "lucide-react";
-import { supabase, Poll, PollOption, PollOptionWithApt, Apartment, APT_COLS } from "@/lib/supabase";
+import { getSupabase, Poll, PollOption, PollOptionWithApt, Apartment, APT_COLS } from "@/lib/supabase";
 import PollFeedCard from "@/components/PollFeedCard";
 
 type PollWithOptions = Poll & { poll_options: PollOptionWithApt[] };
@@ -17,7 +17,7 @@ export default function PollsPage() {
 
   useEffect(() => {
     async function fetchPolls() {
-      const { data: pollsData } = await supabase
+      const { data: pollsData } = await getSupabase()
         .from("polls")
         .select("*, poll_options(*)")
         .order("created_at", { ascending: false });
@@ -38,7 +38,7 @@ export default function PollsPage() {
 
       const { data: apartments } =
         aptIds.length > 0
-          ? await supabase
+          ? await getSupabase()
               .from("apartData")
               .select(APT_COLS)
               .in("danjiCode", aptIds)

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Search, X } from "lucide-react";
-import { supabase, Apartment, APT_COLS } from "@/lib/supabase";
+import { getSupabase, Apartment, APT_COLS } from "@/lib/supabase";
 import ApartmentSummaryCard from "./ApartmentSummaryCard";
 
 interface Props {
@@ -30,14 +30,32 @@ export default function ApartmentSearch({ selected, onAdd, onRemove, max = 4 }: 
     }
     const timer = setTimeout(async () => {
       setLoading(true);
-      const { data } = await supabase
-        .from("apartData")
-        .select(APT_COLS)
-        .ilike("danjiName", `%${query}%`)
-        .limit(10);
-      setResults((data as Apartment[]) ?? []);
-      setOpen(true);
-      setLoading(false);
+      try {
+        // 토큰 분리: "래미안 송파" → ["래미안", "송파"]
+        const tokens = query.trim().split(/\s+/).filter(Boolean);
+        // 공백 제거 버전: "힐스테이트 에코" → "힐스테이트에코" (DB 표기 차이 대응)
+        const stripped = tokens.join("");
+
+        const conditions = new Set([
+          ...tokens.map((t) => `danjiName.ilike.%${t}%`),
+          // 공백 제거 버전 추가 (단어가 여러 개일 때만)
+          ...(tokens.length > 1 ? [`danjiName.ilike.%${stripped}%`] : []),
+          // sigungu 검색 지원: "송파 래미안" 에서 "송파"로 지역 필터링
+          ...tokens.map((t) => `sigungu.ilike.%${t}%`),
+        ]);
+
+        const { data } = await getSupabase()
+          .from("apartData")
+          .select(APT_COLS)
+          .or([...conditions].join(","))
+          .limit(20);
+        setResults((data as Apartment[]) ?? []);
+        setOpen(true);
+      } catch (e) {
+        console.error("[Search] exception:", e);
+      } finally {
+        setLoading(false);
+      }
     }, 300);
     return () => clearTimeout(timer);
   }, [query]);
@@ -104,13 +122,18 @@ export default function ApartmentSearch({ selected, onAdd, onRemove, max = 4 }: 
                       : "hover:bg-slate-50 cursor-pointer",
                   ].join(" ")}
                 >
-                  <p className="text-sm font-semibold text-slate-800">{apt.danjiName}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    {apt.sido} {apt.sigungu}
-                    {isSelected && (
-                      <span className="ml-2 text-indigo-500 font-medium">이미 추가됨</span>
-                    )}
-                  </p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-slate-800 truncate">
+                      {apt.danjiName}
+                      {isSelected && (
+                        <span className="ml-2 text-xs text-indigo-500 font-medium">추가됨</span>
+                      )}
+                    </p>
+                    <p className="text-xs text-slate-400 shrink-0">
+                      {apt.sido} {apt.eupMyeon ?? apt.donglee ?? apt.sigungu}
+                    </p>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5">{apt.sigungu}</p>
                 </button>
               );
             })}

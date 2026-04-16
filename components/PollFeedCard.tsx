@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, Users } from "lucide-react";
-import { Poll, PollOptionWithApt } from "@/lib/supabase";
+import { ChevronRight, Users, MapPin, Wallet } from "lucide-react";
+import { Poll, PollOptionWithApt, formatBudget } from "@/lib/supabase";
 
 interface Props {
   poll: Poll;
@@ -16,7 +16,7 @@ export default function PollFeedCard({ poll, options }: Props) {
     <Link href={`/polls/${poll.id}`}>
       <div className="bg-white rounded-[1.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-shadow p-5 cursor-pointer group">
         {/* 제목 */}
-        <div className="flex items-start gap-2 mb-4">
+        <div className="flex items-start gap-2 mb-3">
           <h3 className="flex-1 font-bold text-slate-900 text-base leading-snug">
             {poll.title}
           </h3>
@@ -25,6 +25,24 @@ export default function PollFeedCard({ poll, options }: Props) {
             className="shrink-0 mt-0.5 text-slate-300 group-hover:text-indigo-500 transition-colors"
           />
         </div>
+
+        {/* 지역 · 예산 뱃지 */}
+        {(poll.region || poll.budget) && (
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            {poll.region && (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full">
+                <MapPin size={10} />
+                {poll.region}
+              </span>
+            )}
+            {poll.budget && (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">
+                <Wallet size={10} />
+                {formatBudget(poll.budget)}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* 아파트 카드 그리드 */}
         <div className="grid grid-cols-2 gap-2 mb-4">

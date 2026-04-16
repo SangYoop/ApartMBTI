@@ -26,18 +26,14 @@ export default function ApartmentSummaryCard({ apartment, compact = false }: Pro
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 p-5">
-      <div className="flex items-start justify-between gap-2 mb-4">
-        <div className="min-w-0">
-          <p className="font-extrabold text-slate-900 text-lg leading-tight truncate">{danjiName}</p>
-          <p className="text-sm text-slate-500 mt-1">
-            {sido} {sigungu}
-          </p>
-        </div>
+      <div className="mb-4">
         {danjiType && (
-          <span className="shrink-0 text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
+          <span className="inline-block text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full mb-2">
             {danjiType}
           </span>
         )}
+        <p className="font-extrabold text-slate-900 text-lg leading-tight truncate">{danjiName}</p>
+        <p className="text-sm text-slate-500 mt-1">{sido} {sigungu}</p>
       </div>
 
       <div className="grid grid-cols-3 gap-2">

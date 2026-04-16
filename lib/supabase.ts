@@ -12,13 +12,6 @@ export function getSupabase(): SupabaseClient {
   return _client;
 }
 
-// 하위 호환 alias
-export const supabase = new Proxy({} as SupabaseClient, {
-  get(_, prop) {
-    return (getSupabase() as unknown as Record<string | symbol, unknown>)[prop];
-  },
-});
-
 /* ─── apartData 테이블 ─── */
 export interface Apartment {
   danjiCode: string;
@@ -45,6 +38,19 @@ export interface Poll {
   id: string;
   title: string;
   created_at: string;
+  region: string | null;
+  budget: number | null;
+}
+
+export function formatBudget(억: number): string {
+  if (억 < 1) {
+    const 만 = Math.round(억 * 10000);
+    return `${만.toLocaleString()}만원`;
+  }
+  const 억단위 = Math.floor(억);
+  const 나머지만 = Math.round((억 - 억단위) * 10000);
+  if (나머지만 === 0) return `${억단위}억원`;
+  return `${억단위}억 ${나머지만.toLocaleString()}만원`;
 }
 
 /* ─── poll_options ─── */
