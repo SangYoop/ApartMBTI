@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, Users } from "lucide-react";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
@@ -107,6 +108,30 @@ export default function HomePage() {
               className="w-full h-auto block"
             />
           </div>
+        </motion.div>
+
+        {/* 투표 진입 배너 */}
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          custom={0.62}
+          className="w-full max-w-2xl mx-auto"
+        >
+          <Link href="/polls">
+            <div className="flex items-center justify-between gap-4 bg-white border border-slate-100 rounded-2xl px-6 py-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-indigo-50">
+                  <Users size={18} className="text-indigo-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-800">아파트 VS 투표</p>
+                  <p className="text-xs text-slate-500">어떤 단지가 더 끌리세요?</p>
+                </div>
+              </div>
+              <ArrowRight size={16} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
+            </div>
+          </Link>
         </motion.div>
 
       </div>
