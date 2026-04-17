@@ -189,9 +189,16 @@ function ResultInner() {
   const hasInserted = useRef(false);
 
   useEffect(() => {
-    if (hasInserted.current || !typeCode || !MBTI_DATA[typeCode]) return;
+    if (!typeCode || !MBTI_DATA[typeCode]) return;
+    if (hasInserted.current) return;
     hasInserted.current = true;
-    getSupabase().from("quiz_results").insert({ result_type: typeCode });
+
+    getSupabase()
+      .from("quiz_results")
+      .insert({ result_type: typeCode })
+      .then(({ error }) => {
+        if (error) hasInserted.current = false;
+      });
   }, [typeCode]);
 
   function toggleCheck(i: number) {
