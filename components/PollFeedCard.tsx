@@ -26,13 +26,23 @@ export default function PollFeedCard({ poll, options }: Props) {
           />
         </div>
 
-        {/* 지역 · 예산 뱃지 */}
-        {(poll.region || poll.budget) && (
+        {/* 지역 · 거래유형 · 예산 뱃지 */}
+        {(poll.region || poll.transaction_type || poll.budget) && (
           <div className="flex flex-wrap gap-1.5 mb-4">
             {poll.region && (
               <span className="inline-flex items-center gap-1 text-xs font-semibold bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full">
                 <MapPin size={10} />
                 {poll.region}
+              </span>
+            )}
+            {poll.transaction_type && (
+              <span className={[
+                "inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full",
+                poll.transaction_type === "전세"
+                  ? "bg-violet-50 text-violet-700"
+                  : "bg-sky-50 text-sky-700",
+              ].join(" ")}>
+                {poll.transaction_type}
               </span>
             )}
             {poll.budget && (

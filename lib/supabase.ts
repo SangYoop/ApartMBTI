@@ -34,12 +34,15 @@ export interface Apartment {
 }
 
 /* ─── polls ─── */
+export type TransactionType = "매매" | "전세";
+
 export interface Poll {
   id: string;
   title: string;
   created_at: string;
   region: string | null;
   budget: number | null;
+  transaction_type: TransactionType | null;
 }
 
 export function formatBudget(억: number): string {
@@ -70,6 +73,13 @@ export interface PollComment {
   content: string;
   created_at: string;
   author_name: string;
+}
+
+/* ─── quiz_results ─── */
+export interface QuizResult {
+  id: string;
+  result_type: string;
+  created_at: string;
 }
 
 /* ─── 아파트 select 컬럼 목록 (공통) ─── */

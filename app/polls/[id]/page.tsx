@@ -127,12 +127,22 @@ export default function PollDetailPage({
           </Link>
           <h1 className="font-extrabold text-slate-900 text-base flex-1 truncate">{poll.title}</h1>
         </div>
-        {(poll.region || poll.budget) && (
+        {(poll.region || poll.transaction_type || poll.budget) && (
           <div className="max-w-xl mx-auto px-4 pb-3 pt-2 flex flex-wrap gap-1.5">
             {poll.region && (
               <span className="inline-flex items-center gap-1 text-xs font-semibold bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full">
                 <MapPin size={10} />
                 {poll.region}
+              </span>
+            )}
+            {poll.transaction_type && (
+              <span className={[
+                "inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full",
+                poll.transaction_type === "전세"
+                  ? "bg-violet-50 text-violet-700"
+                  : "bg-sky-50 text-sky-700",
+              ].join(" ")}>
+                {poll.transaction_type}
               </span>
             )}
             {poll.budget && (
@@ -143,7 +153,7 @@ export default function PollDetailPage({
             )}
           </div>
         )}
-        {!poll.region && !poll.budget && <div className="pb-1" />}
+        {!poll.region && !poll.transaction_type && !poll.budget && <div className="pb-1" />}
       </header>
 
       <div className="max-w-xl mx-auto px-4 py-6 space-y-10">
