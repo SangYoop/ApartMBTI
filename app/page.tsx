@@ -125,7 +125,7 @@ export default function HomePage() {
                   <Users size={18} className="text-indigo-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-slate-800">아파트 VS 투표</p>
+                  <p className="text-sm font-bold text-slate-800">아파트 밸런스 게임</p>
                   <p className="text-xs text-slate-500">어떤 단지가 더 끌리세요?</p>
                 </div>
               </div>

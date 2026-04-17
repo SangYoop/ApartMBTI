@@ -76,13 +76,13 @@ export default function PollsPage() {
               <Home size={18} className="text-slate-500" />
             </Link>
             <h1 className="font-extrabold text-slate-900 text-lg">
-              아파트 VS 투표
+              아파트 밸런스 게임
             </h1>
           </div>
           <Link href="/polls/create">
             <button className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-4 py-2 text-sm font-semibold transition-colors">
               <Plus size={15} strokeWidth={2.5} />
-              새 투표
+              고민 중인 아파트 투표 올려보기
             </button>
           </Link>
         </div>
@@ -103,7 +103,7 @@ export default function PollsPage() {
             <p className="text-sm text-slate-400">첫 번째 투표를 만들어보세요!</p>
             <Link href="/polls/create">
               <button className="mt-2 bg-indigo-600 text-white rounded-full px-6 py-3 text-sm font-semibold">
-                투표 만들기
+                고민 중인 아파트 투표 올려보기
               </button>
             </Link>
           </div>

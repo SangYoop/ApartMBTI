@@ -72,7 +72,7 @@ export default function CreatePollPage() {
           <Link href="/polls" className="p-2 rounded-full hover:bg-slate-100 transition-colors">
             <ArrowLeft size={18} className="text-slate-500" />
           </Link>
-          <h1 className="font-extrabold text-slate-900 text-lg">새 투표 만들기</h1>
+          <h1 className="font-extrabold text-slate-900 text-lg">아파트 밸런스 게임</h1>
         </div>
 
         {/* 단계 인디케이터 */}
