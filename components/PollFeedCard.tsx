@@ -77,6 +77,7 @@ export default function PollFeedCard({ poll, options }: Props) {
                     {formatContractYM(opt.recentPrice.contract_year_month)}
                     {opt.recentPrice.area_size != null && ` · ${formatAreaSize(opt.recentPrice.area_size)}`}
                     {opt.recentPrice.floor && ` · ${opt.recentPrice.floor}층`}
+                    {opt.recentPrice.price_krw != null && ` · ${formatBudget(opt.recentPrice.price_krw / 10000)}`}
                   </p>
                 )}
                 {pct !== null && (

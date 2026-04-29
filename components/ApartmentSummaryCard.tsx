@@ -1,6 +1,6 @@
 "use client";
 
-import { Apartment, RealPrice, formatContractYM, formatAreaSize } from "@/lib/supabase";
+import { Apartment, RealPrice, formatContractYM, formatAreaSize, formatBudget } from "@/lib/supabase";
 
 function formatYear(d: string | null) {
   if (!d) return "-";
@@ -71,6 +71,11 @@ export default function ApartmentSummaryCard({ apartment, recentPrice, compact =
           )}
           {recentPrice.floor && (
             <span className="text-xs text-slate-500">· {recentPrice.floor}층</span>
+          )}
+          {recentPrice.price_krw != null && (
+            <span className="text-xs font-bold text-slate-700">
+              · {formatBudget(recentPrice.price_krw / 10000)}
+            </span>
           )}
         </div>
       )}

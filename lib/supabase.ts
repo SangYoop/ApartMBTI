@@ -96,10 +96,11 @@ export interface RealPrice {
   contract_day: string | null;
   area_size: number | null;
   floor: string | null;
+  price_krw: number | null;
 }
 
 export const REAL_PRICE_COLS =
-  "danji_code, contract_year_month, contract_day, area_size, floor";
+  "danji_code, contract_year_month, contract_day, area_size, floor, price_krw";
 
 /** "202503" → "2025.03" */
 export function formatContractYM(ym: string): string {
@@ -108,11 +109,10 @@ export function formatContractYM(ym: string): string {
   return ym;
 }
 
-/** 84.92 → "84.9㎡ (25.7평)" */
+/** 84.92 → "전용 25.7평" */
 export function formatAreaSize(sqm: number): string {
-  const rounded = Math.round(sqm * 10) / 10;
   const pyeong = Math.round(sqm * 0.3025 * 10) / 10;
-  return `${rounded}㎡ (${pyeong}평)`;
+  return `전용 ${pyeong}평`;
 }
 
 /** 각 danjiCode 별 가장 최근 거래 1건을 Map으로 반환 */
