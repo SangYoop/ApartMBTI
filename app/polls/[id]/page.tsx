@@ -13,6 +13,7 @@ import {
   PollComment,
   Apartment,
   APT_COLS,
+  fetchRecentPrices,
 } from "@/lib/supabase";
 import PollVotingBoard from "@/components/PollVotingBoard";
 
@@ -51,10 +52,10 @@ export default function PollDetailPage({
       }
 
       const aptIds = (optionsData as PollOption[]).map((o) => o.apartment_id);
-      const { data: apartments } = await getSupabase()
-        .from("apartData")
-        .select(APT_COLS)
-        .in("danjiCode", aptIds);
+      const [{ data: apartments }, realPriceMap] = await Promise.all([
+        getSupabase().from("apartData").select(APT_COLS).in("danjiCode", aptIds),
+        fetchRecentPrices(aptIds),
+      ]);
 
       const aptMap = new Map(
         ((apartments as Apartment[]) ?? []).map((a) => [a.danjiCode, a])
@@ -65,6 +66,7 @@ export default function PollDetailPage({
         (optionsData as PollOption[]).map((o) => ({
           ...o,
           apartment: aptMap.get(o.apartment_id),
+          recentPrice: realPriceMap.get(o.apartment_id) ?? null,
         }))
       );
       setComments((commentsData as PollComment[]) ?? []);

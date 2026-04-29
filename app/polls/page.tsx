@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Plus, Home } from "lucide-react";
-import { getSupabase, Poll, PollOption, PollOptionWithApt, Apartment, APT_COLS } from "@/lib/supabase";
+import { getSupabase, Poll, PollOption, PollOptionWithApt, Apartment, APT_COLS, fetchRecentPrices } from "@/lib/supabase";
 import PollFeedCard from "@/components/PollFeedCard";
 
 type PollWithOptions = Poll & { poll_options: PollOptionWithApt[] };
@@ -48,12 +48,15 @@ export default function PollsPage() {
         ((apartments as Apartment[]) ?? []).map((a) => [a.danjiCode, a])
       );
 
+      const realPriceMap = await fetchRecentPrices(aptIds);
+
       setPolls(
         pollsData.map((p) => ({
           ...p,
           poll_options: (p.poll_options as PollOption[]).map((o) => ({
             ...o,
             apartment: aptMap.get(o.apartment_id),
+            recentPrice: realPriceMap.get(o.apartment_id) ?? null,
           })),
         }))
       );

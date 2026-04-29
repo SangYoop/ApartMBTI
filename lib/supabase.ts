@@ -64,7 +64,10 @@ export interface PollOption {
   vote_count: number;
 }
 
-export type PollOptionWithApt = PollOption & { apartment: Apartment | undefined };
+export type PollOptionWithApt = PollOption & {
+  apartment: Apartment | undefined;
+  recentPrice: RealPrice | null | undefined;
+};
 
 /* ─── poll_comments ─── */
 export interface PollComment {
@@ -85,3 +88,50 @@ export interface QuizResult {
 /* ─── 아파트 select 컬럼 목록 (공통) ─── */
 export const APT_COLS =
   "danjiCode, danjiName, danjiType, sido, sigungu, eupMyeon, donglee, oldJuso, zipCode, newJuso, openDay, doungSu, sedaeSu, boiler, hallway, parkingLots, parkingLots_ratio";
+
+/* ─── real_price_data 테이블 ─── */
+export interface RealPrice {
+  danji_code: string;
+  contract_year_month: string;
+  contract_day: string | null;
+  area_size: number | null;
+  floor: string | null;
+}
+
+export const REAL_PRICE_COLS =
+  "danji_code, contract_year_month, contract_day, area_size, floor";
+
+/** "202503" → "2025.03" */
+export function formatContractYM(ym: string): string {
+  const s = ym.replace(/\D/g, "");
+  if (s.length >= 6) return `${s.slice(0, 4)}.${s.slice(4, 6)}`;
+  return ym;
+}
+
+/** 84.92 → "84.9㎡ (25.7평)" */
+export function formatAreaSize(sqm: number): string {
+  const rounded = Math.round(sqm * 10) / 10;
+  const pyeong = Math.round(sqm * 0.3025 * 10) / 10;
+  return `${rounded}㎡ (${pyeong}평)`;
+}
+
+/** 각 danjiCode 별 가장 최근 거래 1건을 Map으로 반환 */
+export async function fetchRecentPrices(
+  danjiCodes: string[]
+): Promise<Map<string, RealPrice>> {
+  if (danjiCodes.length === 0) return new Map();
+
+  const { data } = await getSupabase()
+    .from("real_price_data")
+    .select(REAL_PRICE_COLS)
+    .in("danji_code", danjiCodes)
+    .order("contract_year_month", { ascending: false })
+    .order("contract_day", { ascending: false })
+    .limit(danjiCodes.length * 10);
+
+  const map = new Map<string, RealPrice>();
+  for (const row of (data as RealPrice[]) ?? []) {
+    if (!map.has(row.danji_code)) map.set(row.danji_code, row);
+  }
+  return map;
+}

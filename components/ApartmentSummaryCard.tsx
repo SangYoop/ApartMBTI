@@ -1,6 +1,6 @@
 "use client";
 
-import { Apartment } from "@/lib/supabase";
+import { Apartment, RealPrice, formatContractYM, formatAreaSize } from "@/lib/supabase";
 
 function formatYear(d: string | null) {
   if (!d) return "-";
@@ -9,10 +9,11 @@ function formatYear(d: string | null) {
 
 interface Props {
   apartment: Apartment;
+  recentPrice?: RealPrice | null;
   compact?: boolean;
 }
 
-export default function ApartmentSummaryCard({ apartment, compact = false }: Props) {
+export default function ApartmentSummaryCard({ apartment, recentPrice, compact = false }: Props) {
   const { danjiName, sido, sigungu, sedaeSu, openDay, parkingLots_ratio, danjiType } = apartment;
 
   if (compact) {
@@ -54,6 +55,25 @@ export default function ApartmentSummaryCard({ apartment, compact = false }: Pro
           </p>
         </div>
       </div>
+
+      {recentPrice && (
+        <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-1.5 flex-wrap">
+          <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+            최근 실거래
+          </span>
+          <span className="text-xs text-slate-500">
+            {formatContractYM(recentPrice.contract_year_month)}
+          </span>
+          {recentPrice.area_size != null && (
+            <span className="text-xs text-slate-500">
+              · {formatAreaSize(recentPrice.area_size)}
+            </span>
+          )}
+          {recentPrice.floor && (
+            <span className="text-xs text-slate-500">· {recentPrice.floor}층</span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

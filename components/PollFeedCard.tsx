@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ChevronRight, Users, MapPin, Wallet } from "lucide-react";
-import { Poll, PollOptionWithApt, formatBudget } from "@/lib/supabase";
+import { Poll, PollOptionWithApt, formatBudget, formatContractYM, formatAreaSize } from "@/lib/supabase";
 
 interface Props {
   poll: Poll;
@@ -72,6 +72,13 @@ export default function PollFeedCard({ poll, options }: Props) {
                 <p className="text-xs text-slate-400 mt-0.5 truncate">
                   {opt.apartment?.sigungu ?? "-"}
                 </p>
+                {opt.recentPrice && (
+                  <p className="text-xs text-emerald-600 mt-1 truncate">
+                    {formatContractYM(opt.recentPrice.contract_year_month)}
+                    {opt.recentPrice.area_size != null && ` · ${formatAreaSize(opt.recentPrice.area_size)}`}
+                    {opt.recentPrice.floor && ` · ${opt.recentPrice.floor}층`}
+                  </p>
+                )}
                 {pct !== null && (
                   <div className="mt-2">
                     <div className="flex justify-between text-xs mb-1">
