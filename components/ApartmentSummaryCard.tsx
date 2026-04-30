@@ -10,10 +10,11 @@ function formatYear(d: string | null) {
 interface Props {
   apartment: Apartment;
   recentPrice?: RealPrice | null;
+  selectedPyeong?: number | null;
   compact?: boolean;
 }
 
-export default function ApartmentSummaryCard({ apartment, recentPrice, compact = false }: Props) {
+export default function ApartmentSummaryCard({ apartment, recentPrice, selectedPyeong, compact = false }: Props) {
   const { danjiName, sido, sigungu, sedaeSu, openDay, parkingLots_ratio, danjiType } = apartment;
 
   if (compact) {
@@ -28,11 +29,18 @@ export default function ApartmentSummaryCard({ apartment, recentPrice, compact =
   return (
     <div className="bg-white rounded-2xl border border-slate-100 p-5">
       <div className="mb-4">
-        {danjiType && (
-          <span className="inline-block text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full mb-2">
-            {danjiType}
-          </span>
-        )}
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {danjiType && (
+            <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full">
+              {danjiType}
+            </span>
+          )}
+          {selectedPyeong != null && (
+            <span className="text-xs font-bold text-white bg-indigo-500 px-2.5 py-0.5 rounded-full">
+              전용 {selectedPyeong}평
+            </span>
+          )}
+        </div>
         <p className="font-extrabold text-slate-900 text-lg leading-tight truncate">{danjiName}</p>
         <p className="text-sm text-slate-500 mt-1">{sido} {sigungu}</p>
       </div>

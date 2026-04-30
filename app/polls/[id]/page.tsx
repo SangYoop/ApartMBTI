@@ -52,9 +52,14 @@ export default function PollDetailPage({
       }
 
       const aptIds = (optionsData as PollOption[]).map((o) => o.apartment_id);
+      const selections = (optionsData as PollOption[]).map((o) => ({
+        key: o.id,
+        danjiCode: o.apartment_id,
+        pyeong: o.pyeong ?? null,
+      }));
       const [{ data: apartments }, realPriceMap] = await Promise.all([
         getSupabase().from("apartData").select(APT_COLS).in("danjiCode", aptIds),
-        fetchRecentPrices(aptIds),
+        fetchRecentPrices(selections),
       ]);
 
       const aptMap = new Map(
@@ -66,7 +71,7 @@ export default function PollDetailPage({
         (optionsData as PollOption[]).map((o) => ({
           ...o,
           apartment: aptMap.get(o.apartment_id),
-          recentPrice: realPriceMap.get(o.apartment_id) ?? null,
+          recentPrice: realPriceMap.get(o.id) ?? null,
         }))
       );
       setComments((commentsData as PollComment[]) ?? []);

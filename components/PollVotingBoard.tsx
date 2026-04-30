@@ -82,7 +82,11 @@ export default function PollVotingBoard({ pollId, initialOptions }: Props) {
 
             <div className="relative z-10 p-5">
               {opt.apartment ? (
-                <ApartmentSummaryCard apartment={opt.apartment} recentPrice={opt.recentPrice} />
+                <ApartmentSummaryCard
+                  apartment={opt.apartment}
+                  recentPrice={opt.recentPrice}
+                  selectedPyeong={opt.pyeong}
+                />
               ) : (
                 <p className="text-slate-400 text-sm">아파트 정보 없음</p>
               )}

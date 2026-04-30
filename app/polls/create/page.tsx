@@ -13,22 +13,25 @@ import ApartmentSummaryCard from "@/components/ApartmentSummaryCard";
 const REGIONS = ["서울", "경기", "지방광역시", "지방"] as const;
 type Region = (typeof REGIONS)[number];
 
+type SelectedOption = { apartment: Apartment; pyeong: number | null };
+
 /* ── 아파트 검색 바텀시트 모달 ── */
 function ApartmentSearchModal({
-  selected,
+  selectedIds,
   onAdd,
   onClose,
   max,
+  currentCount,
 }: {
-  selected: Apartment[];
+  selectedIds: Set<string>;
   onAdd: (apt: Apartment) => void;
   onClose: () => void;
   max: number;
+  currentCount: number;
 }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Apartment[]>([]);
   const [loading, setLoading] = useState(false);
-  const selectedIds = new Set(selected.map((a) => a.danjiCode));
 
   useEffect(() => {
     if (query.length < 2) { setResults([]); return; }
@@ -56,7 +59,7 @@ function ApartmentSearchModal({
   }, [query]);
 
   function handleSelect(apt: Apartment) {
-    if (!selectedIds.has(apt.danjiCode) && selected.length < max) {
+    if (!selectedIds.has(apt.danjiCode) && currentCount < max) {
       onAdd(apt);
       onClose();
     }
@@ -79,23 +82,18 @@ function ApartmentSearchModal({
         className="absolute inset-x-0 bottom-0 bg-white rounded-t-3xl max-h-[85vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* 핸들 */}
         <div className="flex justify-center pt-3 pb-1 shrink-0">
           <div className="w-10 h-1 bg-slate-200 rounded-full" />
         </div>
-
-        {/* 헤더 */}
         <div className="flex items-center justify-between px-5 py-3 shrink-0">
           <div>
             <h2 className="text-lg font-extrabold text-slate-900">아파트 검색</h2>
-            <p className="text-xs text-slate-400 mt-0.5">{selected.length}/{max}개 선택됨 · 아파트 선택 시 자동으로 닫혀요</p>
+            <p className="text-xs text-slate-400 mt-0.5">{currentCount}/{max}개 선택됨 · 선택 시 자동으로 닫혀요</p>
           </div>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-100 transition-colors">
             <X size={18} className="text-slate-500" />
           </button>
         </div>
-
-        {/* 검색 인풋 */}
         <div className="px-5 pb-4 shrink-0">
           <div className="flex items-center gap-2 bg-slate-50 border-2 border-slate-200 rounded-2xl px-4 py-3 focus-within:border-indigo-500 transition-colors">
             <Search size={18} className="text-slate-400 shrink-0" />
@@ -116,8 +114,6 @@ function ApartmentSearchModal({
             ) : null}
           </div>
         </div>
-
-        {/* 결과 */}
         <div className="flex-1 overflow-y-auto px-5 pb-10">
           {query.length < 2 && (
             <p className="text-sm text-slate-400 text-center py-12">단지명을 2자 이상 입력해주세요</p>
@@ -128,7 +124,7 @@ function ApartmentSearchModal({
           <div className="space-y-2">
             {results.map((apt) => {
               const isSelected = selectedIds.has(apt.danjiCode);
-              const isFull = selected.length >= max;
+              const isFull = currentCount >= max;
               return (
                 <button
                   key={apt.danjiCode}
@@ -168,21 +164,48 @@ export default function CreatePollPage() {
   const [region, setRegion] = useState<Region | null>(null);
   const [transactionType, setTransactionType] = useState<TransactionType>("매매");
   const [budgetInput, setBudgetInput] = useState("");
-  const [selected, setSelected] = useState<Apartment[]>([]);
+  const [selected, setSelected] = useState<SelectedOption[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const MAX_APTS = 4;
   const budget = budgetInput ? parseFloat(budgetInput) : null;
-  const isValid = title.trim().length >= 5 && region !== null && selected.length >= 2;
+
+  const selectedIds = new Set(selected.map((s) => s.apartment.danjiCode));
+
+  const allPyeongsSelected = selected.every(
+    (s) => !s.apartment.area_types?.length || s.pyeong !== null
+  );
+  const isValid =
+    title.trim().length >= 5 && region !== null && selected.length >= 2 && allPyeongsSelected;
 
   const validationHint = !isValid
     ? title.trim().length < 5
       ? "제목을 5자 이상 입력해주세요"
       : !region
       ? "지역을 선택해주세요"
-      : "아파트를 2개 이상 추가해주세요"
+      : selected.length < 2
+      ? "아파트를 2개 이상 추가해주세요"
+      : "모든 아파트의 평형을 선택해주세요"
     : null;
+
+  function handleAddApartment(apt: Apartment) {
+    setSelected((prev) => [...prev, { apartment: apt, pyeong: null }]);
+  }
+
+  function handleRemoveApartment(danjiCode: string) {
+    setSelected((prev) => prev.filter((s) => s.apartment.danjiCode !== danjiCode));
+  }
+
+  function handlePyeongSelect(danjiCode: string, pyeong: number) {
+    setSelected((prev) =>
+      prev.map((s) =>
+        s.apartment.danjiCode === danjiCode
+          ? { ...s, pyeong: s.pyeong === pyeong ? null : pyeong }
+          : s
+      )
+    );
+  }
 
   async function handleSubmit() {
     if (!isValid || submitting) return;
@@ -202,9 +225,10 @@ export default function CreatePollPage() {
     if (error || !poll) { setSubmitting(false); return; }
 
     await getSupabase().from("poll_options").insert(
-      selected.map((apt) => ({
+      selected.map(({ apartment, pyeong }) => ({
         poll_id: poll.id,
-        apartment_id: apt.danjiCode,
+        apartment_id: apartment.danjiCode,
+        pyeong: pyeong ?? null,
         vote_count: 0,
       }))
     );
@@ -215,7 +239,6 @@ export default function CreatePollPage() {
   return (
     <>
       <main className="min-h-screen bg-slate-50 pb-32">
-        {/* 헤더 */}
         <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100">
           <div className="max-w-xl mx-auto px-4 py-4 flex items-center gap-3">
             <Link href="/polls" className="p-2 rounded-full hover:bg-slate-100 transition-colors">
@@ -330,22 +353,50 @@ export default function CreatePollPage() {
             </div>
 
             <AnimatePresence>
-              {selected.map((apt) => (
+              {selected.map((item) => (
                 <motion.div
-                  key={apt.danjiCode}
+                  key={item.apartment.danjiCode}
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
-                  className="relative"
+                  className="space-y-2"
                 >
-                  <ApartmentSummaryCard apartment={apt} />
-                  <button
-                    onClick={() => setSelected((prev) => prev.filter((a) => a.danjiCode !== apt.danjiCode))}
-                    className="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
-                  >
-                    <X size={14} />
-                  </button>
+                  <div className="relative">
+                    <ApartmentSummaryCard apartment={item.apartment} selectedPyeong={item.pyeong} />
+                    <button
+                      onClick={() => handleRemoveApartment(item.apartment.danjiCode)}
+                      className="absolute top-4 right-4 p-1.5 rounded-full bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+
+                  {/* 평형 선택 칩 */}
+                  {item.apartment.area_types && item.apartment.area_types.length > 0 && (
+                    <div className="px-1">
+                      <p className="text-xs text-slate-500 mb-2">
+                        평형 선택 <span className="text-red-400">*</span>
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {item.apartment.area_types.map((at) => (
+                          <button
+                            key={at.pyeong}
+                            onClick={() => handlePyeongSelect(item.apartment.danjiCode, at.pyeong)}
+                            className={[
+                              "px-3 py-1.5 rounded-full text-xs font-bold border-2 transition-colors",
+                              item.pyeong === at.pyeong
+                                ? "border-indigo-500 bg-indigo-500 text-white"
+                                : "border-slate-200 bg-white text-slate-600 hover:border-indigo-300",
+                            ].join(" ")}
+                          >
+                            전용 {at.pyeong}평
+                            <span className="ml-1 font-normal opacity-70">{at.households}세대</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -383,14 +434,14 @@ export default function CreatePollPage() {
         </div>
       </main>
 
-      {/* 아파트 검색 모달 */}
       <AnimatePresence>
         {modalOpen && (
           <ApartmentSearchModal
-            selected={selected}
-            onAdd={(apt) => setSelected((prev) => [...prev, apt])}
+            selectedIds={selectedIds}
+            onAdd={handleAddApartment}
             onClose={() => setModalOpen(false)}
             max={MAX_APTS}
+            currentCount={selected.length}
           />
         )}
       </AnimatePresence>

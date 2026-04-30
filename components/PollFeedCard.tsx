@@ -69,9 +69,14 @@ export default function PollFeedCard({ poll, options }: Props) {
                 <p className="text-sm font-bold text-slate-800 truncate">
                   {opt.apartment?.danjiName ?? "알 수 없음"}
                 </p>
-                <p className="text-xs text-slate-400 mt-0.5 truncate">
-                  {opt.apartment?.sigungu ?? "-"}
-                </p>
+                <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                  <p className="text-xs text-slate-400 truncate">{opt.apartment?.sigungu ?? "-"}</p>
+                  {opt.pyeong != null && (
+                    <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded-full shrink-0">
+                      전용 {opt.pyeong}평
+                    </span>
+                  )}
+                </div>
                 {opt.recentPrice && (
                   <p className="text-xs text-emerald-600 mt-1 truncate">
                     {formatContractYM(opt.recentPrice.contract_year_month)}

@@ -12,6 +12,13 @@ export function getSupabase(): SupabaseClient {
   return _client;
 }
 
+/* ─── 단지 평형 타입 ─── */
+export interface AreaType {
+  pyeong: number;
+  sqm: number;
+  households: number;
+}
+
 /* ─── apartData 테이블 ─── */
 export interface Apartment {
   danjiCode: string;
@@ -24,13 +31,14 @@ export interface Apartment {
   oldJuso: string | null;
   zipCode: string | null;
   newJuso: string | null;
-  openDay: string | null;   // date → string (ISO)
+  openDay: string | null;
   doungSu: number | null;
   sedaeSu: number | null;
   boiler: string | null;
   hallway: string | null;
   parkingLots: number | null;
   parkingLots_ratio: number | null;
+  area_types: AreaType[] | null;
 }
 
 /* ─── polls ─── */
@@ -62,6 +70,7 @@ export interface PollOption {
   poll_id: string;
   apartment_id: string;
   vote_count: number;
+  pyeong: number | null;
 }
 
 export type PollOptionWithApt = PollOption & {
@@ -87,7 +96,7 @@ export interface QuizResult {
 
 /* ─── 아파트 select 컬럼 목록 (공통) ─── */
 export const APT_COLS =
-  "danjiCode, danjiName, danjiType, sido, sigungu, eupMyeon, donglee, oldJuso, zipCode, newJuso, openDay, doungSu, sedaeSu, boiler, hallway, parkingLots, parkingLots_ratio";
+  "danjiCode, danjiName, danjiType, sido, sigungu, eupMyeon, donglee, oldJuso, zipCode, newJuso, openDay, doungSu, sedaeSu, boiler, hallway, parkingLots, parkingLots_ratio, area_types";
 
 /* ─── real_price_data 테이블 ─── */
 export interface RealPrice {
@@ -115,23 +124,43 @@ export function formatAreaSize(sqm: number): string {
   return `전용 ${pyeong}평`;
 }
 
-/** 각 danjiCode 별 가장 최근 거래 1건을 Map으로 반환 */
+/**
+ * 옵션별(key 기준) 가장 최근 실거래 1건을 Map으로 반환.
+ * pyeong이 지정된 경우 ±1평 오차 내 area_size만 필터링.
+ */
 export async function fetchRecentPrices(
-  danjiCodes: string[]
+  selections: Array<{ key: string; danjiCode: string; pyeong?: number | null }>
 ): Promise<Map<string, RealPrice>> {
-  if (danjiCodes.length === 0) return new Map();
+  if (selections.length === 0) return new Map();
 
-  const { data } = await getSupabase()
-    .from("real_price_data")
-    .select(REAL_PRICE_COLS)
-    .in("danji_code", danjiCodes)
-    .order("contract_year_month", { ascending: false })
-    .order("contract_day", { ascending: false })
-    .limit(danjiCodes.length * 10);
+  const results = await Promise.all(
+    selections.map(async ({ key, danjiCode, pyeong }) => {
+      const { data } =
+        pyeong != null
+          ? await getSupabase()
+              .from("real_price_data")
+              .select(REAL_PRICE_COLS)
+              .eq("danji_code", danjiCode)
+              .gte("area_size", (pyeong - 1) / 0.3025)
+              .lt("area_size", (pyeong + 2) / 0.3025)
+              .order("contract_year_month", { ascending: false })
+              .order("contract_day", { ascending: false })
+              .limit(1)
+          : await getSupabase()
+              .from("real_price_data")
+              .select(REAL_PRICE_COLS)
+              .eq("danji_code", danjiCode)
+              .order("contract_year_month", { ascending: false })
+              .order("contract_day", { ascending: false })
+              .limit(1);
+
+      return { key, row: (data as RealPrice[] | null)?.[0] ?? null };
+    })
+  );
 
   const map = new Map<string, RealPrice>();
-  for (const row of (data as RealPrice[]) ?? []) {
-    if (!map.has(row.danji_code)) map.set(row.danji_code, row);
+  for (const { key, row } of results) {
+    if (row) map.set(key, row);
   }
   return map;
 }

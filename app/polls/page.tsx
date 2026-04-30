@@ -48,7 +48,10 @@ export default function PollsPage() {
         ((apartments as Apartment[]) ?? []).map((a) => [a.danjiCode, a])
       );
 
-      const realPriceMap = await fetchRecentPrices(aptIds);
+      const allOptions = pollsData.flatMap((p) => p.poll_options as PollOption[]);
+      const realPriceMap = await fetchRecentPrices(
+        allOptions.map((o) => ({ key: o.id, danjiCode: o.apartment_id, pyeong: o.pyeong ?? null }))
+      );
 
       setPolls(
         pollsData.map((p) => ({
@@ -56,7 +59,7 @@ export default function PollsPage() {
           poll_options: (p.poll_options as PollOption[]).map((o) => ({
             ...o,
             apartment: aptMap.get(o.apartment_id),
-            recentPrice: realPriceMap.get(o.apartment_id) ?? null,
+            recentPrice: realPriceMap.get(o.id) ?? null,
           })),
         }))
       );
