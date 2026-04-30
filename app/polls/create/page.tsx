@@ -24,7 +24,7 @@ function ApartmentSearchModal({
   currentCount,
 }: {
   selectedIds: Set<string>;
-  onAdd: (apt: Apartment) => void;
+  onAdd: (apt: Apartment, pyeong: number | null) => void;
   onClose: () => void;
   max: number;
   currentCount: number;
@@ -32,9 +32,10 @@ function ApartmentSearchModal({
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Apartment[]>([]);
   const [loading, setLoading] = useState(false);
+  const [expandedCode, setExpandedCode] = useState<string | null>(null);
 
   useEffect(() => {
-    if (query.length < 2) { setResults([]); return; }
+    if (query.length < 2) { setResults([]); setExpandedCode(null); return; }
     const timer = setTimeout(async () => {
       setLoading(true);
       try {
@@ -51,6 +52,7 @@ function ApartmentSearchModal({
           .or([...conditions].join(","))
           .limit(20);
         setResults((data as Apartment[]) ?? []);
+        setExpandedCode(null);
       } finally {
         setLoading(false);
       }
@@ -58,11 +60,22 @@ function ApartmentSearchModal({
     return () => clearTimeout(timer);
   }, [query]);
 
-  function handleSelect(apt: Apartment) {
-    if (!selectedIds.has(apt.danjiCode) && currentCount < max) {
-      onAdd(apt);
+  function handleApartmentClick(apt: Apartment) {
+    if (selectedIds.has(apt.danjiCode) || currentCount >= max) return;
+    if (apt.area_types && apt.area_types.length > 0) {
+      // 평형 타입 있으면 인라인 펼치기
+      setExpandedCode((prev) => (prev === apt.danjiCode ? null : apt.danjiCode));
+    } else {
+      // 평형 정보 없으면 바로 추가
+      onAdd(apt, null);
       onClose();
     }
+  }
+
+  function handlePyeongClick(e: React.MouseEvent, apt: Apartment, pyeong: number) {
+    e.stopPropagation();
+    onAdd(apt, pyeong);
+    onClose();
   }
 
   return (
@@ -88,7 +101,9 @@ function ApartmentSearchModal({
         <div className="flex items-center justify-between px-5 py-3 shrink-0">
           <div>
             <h2 className="text-lg font-extrabold text-slate-900">아파트 검색</h2>
-            <p className="text-xs text-slate-400 mt-0.5">{currentCount}/{max}개 선택됨 · 선택 시 자동으로 닫혀요</p>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {currentCount}/{max}개 선택됨 · 평형 타입이 있는 단지는 평형 선택 후 추가
+            </p>
           </div>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-100 transition-colors">
             <X size={18} className="text-slate-500" />
@@ -125,17 +140,21 @@ function ApartmentSearchModal({
             {results.map((apt) => {
               const isSelected = selectedIds.has(apt.danjiCode);
               const isFull = currentCount >= max;
+              const isExpanded = expandedCode === apt.danjiCode;
+              const hasTypes = apt.area_types && apt.area_types.length > 0;
+
               return (
-                <button
+                <div
                   key={apt.danjiCode}
-                  onClick={() => handleSelect(apt)}
-                  disabled={isSelected || isFull}
+                  onClick={() => handleApartmentClick(apt)}
                   className={[
                     "w-full text-left px-4 py-3.5 rounded-2xl border-2 transition-colors",
                     isSelected
                       ? "border-indigo-200 bg-indigo-50 cursor-default"
                       : isFull
                       ? "border-slate-100 bg-slate-50 opacity-50 cursor-not-allowed"
+                      : isExpanded
+                      ? "border-indigo-400 bg-indigo-50/60 cursor-pointer"
                       : "border-slate-100 bg-white hover:border-indigo-300 hover:bg-indigo-50/50 cursor-pointer",
                   ].join(" ")}
                 >
@@ -144,10 +163,39 @@ function ApartmentSearchModal({
                       {apt.danjiName}
                       {isSelected && <span className="ml-2 text-xs text-indigo-500 font-medium">추가됨</span>}
                     </p>
-                    <p className="text-xs text-slate-400 shrink-0">{apt.sigungu}</p>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {hasTypes && !isSelected && (
+                        <span className="text-xs text-indigo-500 font-semibold">
+                          {apt.area_types!.length}개 평형
+                        </span>
+                      )}
+                      <p className="text-xs text-slate-400">{apt.sigungu}</p>
+                    </div>
                   </div>
                   <p className="text-xs text-slate-400 mt-0.5">{apt.sido}</p>
-                </button>
+
+                  {/* 평형 선택 칩 (인라인 펼치기) */}
+                  {isExpanded && hasTypes && (
+                    <div
+                      className="mt-3 pt-3 border-t border-indigo-100"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <p className="text-xs font-semibold text-indigo-600 mb-2">평형 선택</p>
+                      <div className="flex flex-wrap gap-2">
+                        {apt.area_types!.map((at) => (
+                          <button
+                            key={at.pyeong}
+                            onClick={(e) => handlePyeongClick(e, apt, at.pyeong)}
+                            className="px-3 py-1.5 rounded-full text-xs font-bold border-2 border-indigo-300 bg-white text-indigo-700 hover:bg-indigo-500 hover:text-white hover:border-indigo-500 transition-colors"
+                          >
+                            전용 {at.pyeong}평
+                            <span className="ml-1 font-normal opacity-60">{at.households}세대</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
@@ -189,8 +237,8 @@ export default function CreatePollPage() {
       : "모든 아파트의 평형을 선택해주세요"
     : null;
 
-  function handleAddApartment(apt: Apartment) {
-    setSelected((prev) => [...prev, { apartment: apt, pyeong: null }]);
+  function handleAddApartment(apt: Apartment, pyeong: number | null) {
+    setSelected((prev) => [...prev, { apartment: apt, pyeong }]);
   }
 
   function handleRemoveApartment(danjiCode: string) {
@@ -372,12 +420,10 @@ export default function CreatePollPage() {
                     </button>
                   </div>
 
-                  {/* 평형 선택 칩 */}
+                  {/* 평형 변경 칩 */}
                   {item.apartment.area_types && item.apartment.area_types.length > 0 && (
                     <div className="px-1">
-                      <p className="text-xs text-slate-500 mb-2">
-                        평형 선택 <span className="text-red-400">*</span>
-                      </p>
+                      <p className="text-xs text-slate-400 mb-2">평형 변경</p>
                       <div className="flex flex-wrap gap-2">
                         {item.apartment.area_types.map((at) => (
                           <button
@@ -438,7 +484,7 @@ export default function CreatePollPage() {
         {modalOpen && (
           <ApartmentSearchModal
             selectedIds={selectedIds}
-            onAdd={handleAddApartment}
+            onAdd={(apt, pyeong) => handleAddApartment(apt, pyeong)}
             onClose={() => setModalOpen(false)}
             max={MAX_APTS}
             currentCount={selected.length}
